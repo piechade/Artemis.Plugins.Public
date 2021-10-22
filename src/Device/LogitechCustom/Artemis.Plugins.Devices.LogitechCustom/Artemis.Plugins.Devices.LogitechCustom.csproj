@@ -51,10 +51,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Layouts\Logitech\Mousepad\Powerplay Mousepad.png">
+    <None Update="Layouts\Logitech\Mousepad\PowerPlay.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Mousepad\Powerplay Mousepad.xml">
+    <None Update="Layouts\Logitech\Mousepad\PowerPlay.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Layouts\Logitech\Headset\G733.png">

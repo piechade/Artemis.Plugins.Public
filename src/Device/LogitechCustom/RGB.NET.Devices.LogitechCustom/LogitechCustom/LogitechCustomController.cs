@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Device.Net;
 // ReSharper disable AsyncConverter.AsyncWait
 
@@ -8,56 +13,63 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
     public class LogitechCustomController : IDisposable
     {
         public const int LogitechWirelessProtocolTimeout = 300;
-        private readonly byte _deviceIndex;
-        private readonly byte _featureIndex;
-        private readonly byte _thirdIndex;
-        private readonly IDevice _hidDevice;
-        readonly byte[] _usbBuf = new byte[20];
+        private readonly byte[] UsbBuf;
+        private readonly DeviceDefinition? DeviceDefinition;
+        private readonly IDevice LogitechCustomDevice;
 
-        public LogitechCustomController(IDevice device, byte deviceIndex, byte featureIndex, byte thirdIndex)
+        private ConcurrentQueue<byte[]> _jobs = new ConcurrentQueue<byte[]>();
+
+        public LogitechCustomController(DeviceDefinition device, IDevice logitechCustomDevice)
         {
-            _deviceIndex = deviceIndex;
-            _featureIndex = featureIndex;
-            _thirdIndex = thirdIndex;
-            _hidDevice = device;
-
-            Initialize();
-        }
-        public void Initialize()
-        {
-            if (!_hidDevice.IsInitialized)
-                _hidDevice.InitializeAsync().Wait();
-
-            if (!_hidDevice.IsInitialized)
+            if (device != null && device.UsbBuf != null)
             {
-                throw new Exception($"Logitech device couldn't be initialized.");
+                UsbBuf = (byte[])device.UsbBuf.Clone();
+            } else
+            {
+                UsbBuf = new byte[20];
             }
+            DeviceDefinition = device;
+            LogitechCustomDevice = logitechCustomDevice;
 
-            _usbBuf[0x00] = 0x11;
-            _usbBuf[0x01] = _deviceIndex;
-            _usbBuf[0x02] = _featureIndex;
-            _usbBuf[0x03] = _thirdIndex;
-            _usbBuf[0x04] = 0x00; //Zone
-            _usbBuf[0x05] = 0x01; //Mode
-            _usbBuf[0x09] = 0x02; //Static. Not saved into Flash and fast enough for direct mode
-            _usbBuf[0x10] = 0x01; // I don't know what is it
+            var thread = new Thread(new ThreadStart(OnStart));
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         public void SetColor(Color color, byte zone)
         {
-            lock (_hidDevice)
+            if (UsbBuf != null)
             {
-                _usbBuf[0x04] = zone;
-                _usbBuf[0x06] = color.R;
-                _usbBuf[0x07] = color.G;
-                _usbBuf[0x08] = color.B;
-                _ = _hidDevice.WriteAsync(_usbBuf).Wait(LogitechWirelessProtocolTimeout);
+                UsbBuf[0x04] = zone;
+                UsbBuf[0x06] = color.R;
+                UsbBuf[0x07] = color.G;
+                UsbBuf[0x08] = color.B;
+                _jobs.Enqueue((byte[])UsbBuf.Clone());
+        
             }
         }
+        private void OnStart()
+        {
+            while (true)
+            {
+                if (_jobs.TryDequeue(out var result))
+                {
+                    _ = LogitechCustomDevice.WriteAsync(result).Wait(LogitechWirelessProtocolTimeout);
+                    System.Threading.Thread.Sleep(5);
+                }
+
+                if (_jobs.Count > 10)
+                {
+                    Console.WriteLine(10);
+                }
+            }
+        }
+
+
         public void Dispose()
         {
-            _hidDevice.Close();
-            _hidDevice.Dispose();
+            LogitechCustomDevice.Close();
+            LogitechCustomDevice.Dispose();
         }
     }
 }

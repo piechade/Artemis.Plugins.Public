@@ -25,11 +25,15 @@ namespace RGB.NET.Devices.LogitechCustom
         {
             LogitechCustomLoader.InitializeAsync().Wait();
 
-            if (LogitechCustomLoader.IsInitialized)
+            foreach (var item in LogitechCustomLoader.GetDevices())
             {
-                LogitechCustomUpdateQueue matUpdateQueue = new LogitechCustomUpdateQueue(GetUpdateTrigger(0), LogitechCustomLoader.MatController);
-                yield return new LogitechCustomRgbDevice(new LogitechCustomRgbDeviceInfo("Logitech Mousepad", RGBDeviceType.Mousepad), matUpdateQueue, 1);
+                if (item.IsInitialized)
+                {
+                    LogitechCustomUpdateQueue matUpdateQueue = new LogitechCustomUpdateQueue(GetUpdateTrigger(0), item.Controller);
+                    yield return new LogitechCustomRgbDevice(new LogitechCustomRgbDeviceInfo(item.Label, item.Type), matUpdateQueue, 1);
+                }
             }
+
         }
 
         public override void Dispose()
