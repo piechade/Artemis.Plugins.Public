@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <ShouldIncludeNativeSkiaSharp>false</ShouldIncludeNativeSkiaSharp>
-    <AssemblyName>Artemis.Plugins.Devices.PowerPlay</AssemblyName>
-    <RootNamespace>Artemis.Plugins.Devices.PowerPlay</RootNamespace>
+    <AssemblyName>Artemis.Plugins.Devices.LogitechCustom</AssemblyName>
+    <RootNamespace>Artemis.Plugins.Devices.LogitechCustom</RootNamespace>
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <GenerateDependencyFile>False</GenerateDependencyFile>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RGB.NET.Devices.PowerPlay\RGB.NET.Devices.LogitechCustom.csproj" />
+    <ProjectReference Include="..\RGB.NET.Devices.LogitechCustom\RGB.NET.Devices.LogitechCustom.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,11 +57,11 @@
     <None Update="Layouts\Logitech\Mousepad\Powerplay Mousepad.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Mousepad\Powerplay.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="Layouts\Logitech\Headset\G733.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Mousepad\Powerplay.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="Layouts\Logitech\Headset\G733.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Logitech.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
