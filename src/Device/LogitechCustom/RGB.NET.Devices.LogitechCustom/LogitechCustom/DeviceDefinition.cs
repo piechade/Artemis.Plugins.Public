@@ -17,5 +17,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
         public LogitechCustomController? Controller { get; set; }
         public RGBDeviceType Type { get; set; }
         public bool IsInitialized { get; set; }
+        public bool Reconnect { get; set; }
+        public int Zones { get; set; }
     }
 }

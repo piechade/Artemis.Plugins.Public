@@ -28,6 +28,8 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 Type = RGBDeviceType.Mousepad,
                 UsbBuf = new byte[] { 0x11, 0x07, 0x0B, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
                 IsInitialized = false,
+                Reconnect = false,
+                Zones = 1
             });
 
             parts.Add(new DeviceDefinition()
@@ -39,6 +41,8 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 Type = RGBDeviceType.Headset,
                 UsbBuf = new byte[] { 0x11, 0xFF, 0x04, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
                 IsInitialized = false,
+                Reconnect = true,
+                Zones = 2
             });
 
 
@@ -76,18 +80,14 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             {
                 LogitechCustomDevice = await hidFactory.GetDeviceAsync(LogitechCustomDeviceDefinition).ConfigureAwait(false);
 
+                if (LogitechCustomDevice != null)
+                {
+                    LogitechCustomDevice.InitializeAsync().Wait();
+                    device.Controller = new LogitechCustomController(device, LogitechCustomDevice);
+                    device.IsInitialized = true;
+                }
             }
 
-            if (LogitechCustomDevice != null)
-            {
-                LogitechCustomDevice.InitializeAsync().Wait();
-                device.Controller = new LogitechCustomController(device, LogitechCustomDevice);
-                if (device.Pid == 0x0ab5)
-                {
-                    device.Controller = new LogitechCustomController(device, LogitechCustomDevice);
-                }
-                device.IsInitialized = true;
-            }
         }
     }
 }
