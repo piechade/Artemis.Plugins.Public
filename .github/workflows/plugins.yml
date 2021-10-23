@@ -48,4 +48,10 @@ jobs:
           name: Artemis.Plugins.Devices.LogitechCustom
           path: .\Plugins\src\Device\LogitechCustom\Artemis.Plugins.Devices.LogitechCustom\bin\x64\Release\net5.0-windows\publish
 
+      - name: Upload Artemis.Plugins.Devices.NZXT
+        uses: actions/upload-artifact@v2
+        with:
+          name: Artemis.Plugins.Devices.NZXT
+          path: .\Plugins\src\Device\NZXT\Artemis.Plugins.Devices.NZXT\bin\x64\Release\net5.0-windows\publish
+
     
