@@ -18,25 +18,15 @@ namespace RGB.NET.Devices.NZXT.NZXT
         public static async Task InitializeAsync()
         {
 
-            parts = new List<DeviceDefinition>();
-
-            parts.Add(new DeviceDefinition()
+            parts = new List<DeviceDefinition>
             {
-                Pid = 0x2006,
-                Label = "NZXT Smart Device V2 1",
-            });
-
-            parts.Add(new DeviceDefinition()
-            {
-                Pid = 0x200d,
-                Label = "NZXT Smart Device V2 2",
-            });
-
-            parts.Add(new DeviceDefinition()
-            {
-                Pid = 0x200f,
-                Label = "NZXT Smart Device V2 3",
-            });
+                new DeviceDefinition()
+                {
+                    Pid = 0x2006,
+                    Page = 1,
+                    Label = "NZXT Smart Device V2 1",
+                }
+            };
 
 
             foreach (var item in parts)
@@ -60,13 +50,25 @@ namespace RGB.NET.Devices.NZXT.NZXT
             return parts;
         }
 
-        private static async Task GetDeviceAsync(int vendorId, DeviceDefinition device)
+        private static async Task GetDeviceAsync(uint vendorId, DeviceDefinition device)
         {
-            var hidFactory = new FilterDeviceDefinition(vendorId: VENDOR_ID, productId: device.Pid, label: device.Label).CreateWindowsHidDeviceFactory();
+            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: device.Pid, label: device.Label).CreateWindowsHidDeviceFactory();
 
-            var NZXTDeviceDefinition = (await hidFactory.GetConnectedDeviceDefinitionsAsync().ConfigureAwait(false));
+            var NZXTDeviceDefinition = (await hidFactory.GetConnectedDeviceDefinitionsAsync().ConfigureAwait(false)).FirstOrDefault(d => d.Usage == device.Page);
+            IDevice? NZXTDevice = null;
+            device.IsInitialized = false;
 
-            Debug.WriteLine(NZXTDeviceDefinition);
+            if (NZXTDeviceDefinition != null)
+            {
+                NZXTDevice = await hidFactory.GetDeviceAsync(NZXTDeviceDefinition).ConfigureAwait(false);
+
+                if (NZXTDevice != null)
+                {
+                    NZXTDevice.InitializeAsync().Wait();
+                    device.Controller = new NZXTController(device, NZXTDevice);
+                    device.IsInitialized = true;
+                }
+            }
         }
     }
 }

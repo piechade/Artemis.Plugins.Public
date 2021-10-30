@@ -53,7 +53,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Device\LogitechCustomRGBDeviceInfo.cs~RF29eaaeb.TMP" />
+	  <None Remove="Device\NZXTRGBDeviceInfo.cs~RF29eaaeb.TMP" />
 	</ItemGroup>
 
 	<ItemGroup>

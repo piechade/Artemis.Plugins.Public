@@ -24,6 +24,6 @@
     </Led>
   </Leds>
   <CustomData>
-    <DeviceImage>Logitech PowerPlay.png</DeviceImage>
+    <DeviceImage>PowerPlay.png</DeviceImage>
   </CustomData>
 </Device>

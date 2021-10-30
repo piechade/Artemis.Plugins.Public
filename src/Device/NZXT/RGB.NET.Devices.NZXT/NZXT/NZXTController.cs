@@ -14,65 +14,13 @@ namespace RGB.NET.Devices.NZXT.NZXT
 {
     public class NZXTController : IDisposable
     {
-        public const int LogitechWirelessProtocolTimeout = 300;
         private readonly byte[] UsbBuf;
-        private readonly DeviceDefinition? DeviceDefinition;
+        private readonly DeviceDefinition DeviceDefinition;
         private readonly IDevice NZXTDevice;
-
-        private int voltage = 0;
-
-        private Thread thread;
-        private Thread thread2;
-
-        private bool run = false;
-
-        private ConcurrentQueue<byte[]> _jobs = new ConcurrentQueue<byte[]>();
-
-        private byte[][] lastvalue = new byte[5][];
-        private bool is_headset_connected;
 
         public NZXTController(DeviceDefinition device, IDevice NZXTDevice)
         {
-            if (device != null && device.UsbBuf != null)
-            {
-                UsbBuf = (byte[])device.UsbBuf.Clone();
-            }
-            else
-            {
-                UsbBuf = new byte[20];
-            }
-            DeviceDefinition = device;
-            NZXTDevice = NZXTDevice;
-
-            run = true;
-
-            if (device != null)
-            {
-                lastvalue = new byte[device.Zones][];
-            }
-
-
-
-            thread = new Thread(new ThreadStart(OnStart))
-            {
-                IsBackground = true
-            };
-            thread.Start();
-
-            thread2 = new Thread(new ThreadStart(OnStart2))
-            {
-                IsBackground = true
-            };
-            thread2.Start();
-
-            if (device != null && device.Reconnect)
-            {
-                var aTimer = new System.Timers.Timer(1000);
-                aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-
-                aTimer.Interval = 60000;
-                aTimer.Enabled = true;
-            }
+            GetAttachedDevices();
 
 
         }
@@ -85,95 +33,25 @@ namespace RGB.NET.Devices.NZXT.NZXT
                 UsbBuf[0x06] = color.R;
                 UsbBuf[0x07] = color.G;
                 UsbBuf[0x08] = color.B;
-                _jobs.Enqueue((byte[])UsbBuf.Clone());
-                lastvalue[zone] = (byte[])UsbBuf.Clone();
-            }
-        }
-        private void OnStart()
-        {
-            while (run)
-            {
-                if (_jobs.TryDequeue(out var result))
-                {
-                    _ = NZXTDevice.WriteAsync(result).ConfigureAwait(false);
-                    System.Threading.Thread.Sleep(5);
-                }
-
-                //if (_jobs.Count > 0)
-                //{
-                //    Debug.WriteLine(_jobs.Count);
-                //}
             }
         }
 
-        private void OnStart2()
+
+        public void GetAttachedDevices()
         {
-            while (run)
-            {
-                using (var sr = NZXTDevice.ReadAsync())
-                {
-                    Debug.WriteLine(JsonSerializer.Serialize(sr));
-                    Debug.WriteLine("Received hid frame: " + BitConverter.ToString(sr.Result.Data));
+            byte[] OutData = new byte[3];
 
-                    if (sr.Result.Data[2] == 0x08 && ((sr.Result.Data[3] & 0xf0) == 0x00))
-                    {
-                        voltage = sr.Result.Data[4] << 8;
-                        voltage |= sr.Result.Data[5];
-                        Debug.WriteLine("Battery voltage: " + voltage);
+            OutData[0] = 0x20;
+            OutData[1] = 0x03;
+            OutData[2] = 0x00;
 
-                        if (voltage == 0)
-                        {
-                            is_headset_connected = false;
-                        }
-                        else if (is_headset_connected == false)
-                        {
-                            is_headset_connected = true;
 
-                            _jobs.Clear();
-                            System.Threading.Thread.Sleep(8000);
-
-                            foreach (var item in lastvalue)
-                            {
-                                _jobs.Enqueue(item);
-                            }
-                        }
-
-                    }
-                }
-            }
+            var result = NZXTDevice.WriteAndReadAsync(OutData).ConfigureAwait(true);
+            //Debug.WriteLine("Received hid frame: " + BitConverter.ToString(result.));
         }
-
-        private void OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            battery_level_update();
-        }
-
-        private void battery_level_update()
-        {
-            byte[] OutData = new byte[20];
-
-            for (int index = 0; index < (20); ++index)
-            {
-                OutData[index] = 0x00;
-            }
-
-            OutData[0] = 0x11;
-            OutData[1] = 0xff;
-
-            OutData[2] = 0x08;
-            OutData[3] = 0x0f;
-
-            //Ask for battery voltage
-            _ = NZXTDevice.WriteAsync(OutData).ConfigureAwait(false);
-        }
-
-
 
         public void Dispose()
         {
-            run = false;
-            thread.Interrupt();
-            thread2.Interrupt();
             NZXTDevice.Close();
             NZXTDevice.Dispose();
         }

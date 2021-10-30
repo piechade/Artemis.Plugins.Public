@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,42 +16,33 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
     public class LogitechCustomController : IDisposable
     {
         public const int LogitechWirelessProtocolTimeout = 300;
+
+        public readonly DeviceDefinition deviceDefinition;
+
         private readonly byte[] UsbBuf;
-        private readonly DeviceDefinition? DeviceDefinition;
         private readonly IDevice LogitechCustomDevice;
+        private readonly Thread thread;
+        private readonly ConcurrentQueue<byte[]> _jobs = new();
+        private readonly byte[][] lastvalue = new byte[5][];
+        private readonly IObservable<TransferResult> readDeviceObservable;
 
         private int voltage = 0;
-
-        private Thread thread;
-        private Thread thread2;
-
         private bool run = false;
 
-        private ConcurrentQueue<byte[]> _jobs = new ConcurrentQueue<byte[]>();
-
-        private byte[][] lastvalue = new byte[5][];
-        private bool is_headset_connected;
 
         public LogitechCustomController(DeviceDefinition device, IDevice logitechCustomDevice)
         {
+            deviceDefinition = new DeviceDefinition();
+            LogitechCustomDevice = logitechCustomDevice;
+            UsbBuf = new byte[20];
+
             if (device != null && device.UsbBuf != null)
             {
+                run = true;
+                lastvalue = new byte[device.Zones][];
+                deviceDefinition = device;
                 UsbBuf = (byte[])device.UsbBuf.Clone();
             }
-            else
-            {
-                UsbBuf = new byte[20];
-            }
-            DeviceDefinition = device;
-            LogitechCustomDevice = logitechCustomDevice;
-
-            run = true;
-
-            if (device != null)
-            {
-                lastvalue = new byte[device.Zones][];
-            }
-
 
 
             thread = new Thread(new ThreadStart(OnStart))
@@ -59,22 +51,86 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             };
             thread.Start();
 
-            thread2 = new Thread(new ThreadStart(OnStart2))
+            readDeviceObservable = Observable
+                .Timer(TimeSpan.Zero, TimeSpan.FromSeconds(.1))
+                .SelectMany(_ => Observable.FromAsync(() => NewMethod()))
+                .Distinct();
+
+            _ = readDeviceObservable.Subscribe(sr =>
             {
-                IsBackground = true
+                HandleRead(sr);
+            });
+
+            deviceDefinition.PropertyChanged += (s, e) =>
+            {
+                var newValue = (bool)((PropertyChangedExtendedEventArgs)e).NewValue;
+                var oldValue = (bool)((PropertyChangedExtendedEventArgs)e).OldValue;
+
+
+                if (s != null)
+                {
+                    if (newValue && (newValue != oldValue))
+                    {
+                        SendLastValue(2000);
+                    }
+                }
             };
-            thread2.Start();
 
-            if (device != null && device.Reconnect)
+        }
+
+        private Task<TransferResult> NewMethod()
+        {
+            if (run)
             {
-                var aTimer = new System.Timers.Timer(1000);
-                aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-
-                aTimer.Interval = 60000;
-                aTimer.Enabled = true;
+                return LogitechCustomDevice.ReadAsync();
             }
 
+#pragma warning disable CS8603 // Mögliche Nullverweisrückgabe.
+            return null;
+#pragma warning restore CS8603 // Mögliche Nullverweisrückgabe.
+        }
 
+        private void SendLastValue(int delay)
+        {
+            Task.Factory.StartNew(async () =>
+            {
+                Debug.WriteLine("Last value");
+                await Task.Delay(delay);
+                foreach (var item in lastvalue)
+                {
+                    if (item != null)
+                    {
+                        _jobs.Enqueue(item);
+                    }
+                }
+            });
+        }
+
+        private void HandleRead(TransferResult sr)
+        {
+            Debug.WriteLine("Received hid frame: " + BitConverter.ToString(sr.Data));
+
+            if (sr.Data[2] == 0x08 && ((sr.Data[3] & 0xf0) == 0x00))
+            {
+                voltage = sr.Data[4] << 8;
+                voltage |= sr.Data[5];
+                Debug.WriteLine("Battery voltage: " + voltage);
+
+                if (voltage == 0)
+                {
+                    deviceDefinition.Connect = false;
+                }
+                else if (deviceDefinition.Connect == false)
+                {
+                    deviceDefinition.Connect = true;
+
+                }
+            }
+
+            if (sr.Data[2] == 0x05)
+            {
+                SendLastValue(2500);
+            }
         }
 
         public void SetColor(Color color, byte zone)
@@ -89,7 +145,13 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 lastvalue[zone] = (byte[])UsbBuf.Clone();
             }
         }
+
         private void OnStart()
+        {
+            DoWork(_jobs);
+        }
+
+        private void DoWork(ConcurrentQueue<byte[]> queue)
         {
             while (run)
             {
@@ -98,57 +160,10 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                     _ = LogitechCustomDevice.WriteAsync(result).ConfigureAwait(false);
                     System.Threading.Thread.Sleep(5);
                 }
-
-                //if (_jobs.Count > 0)
-                //{
-                //    Debug.WriteLine(_jobs.Count);
-                //}
             }
         }
 
-        private void OnStart2()
-        {
-            while (run)
-            {
-                using (var sr = LogitechCustomDevice.ReadAsync())
-                {
-                    Debug.WriteLine(JsonSerializer.Serialize(sr));
-                    Debug.WriteLine("Received hid frame: " + BitConverter.ToString(sr.Result.Data));
-
-                    if (sr.Result.Data[2] == 0x08 && ((sr.Result.Data[3] & 0xf0) == 0x00))
-                    {
-                        voltage = sr.Result.Data[4] << 8;
-                        voltage |= sr.Result.Data[5];
-                        Debug.WriteLine("Battery voltage: " + voltage);
-
-                        if (voltage == 0)
-                        {
-                            is_headset_connected = false;
-                        }
-                        else if (is_headset_connected == false)
-                        {
-                            is_headset_connected = true;
-
-                            _jobs.Clear();
-                            System.Threading.Thread.Sleep(8000);
-
-                            foreach (var item in lastvalue)
-                            {
-                                _jobs.Enqueue(item);
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
-        private void OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            battery_level_update();
-        }
-
-        private void battery_level_update()
+        private static byte[] Gen_battery_level_update_message()
         {
             byte[] OutData = new byte[20];
 
@@ -163,17 +178,13 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             OutData[2] = 0x08;
             OutData[3] = 0x0f;
 
-            //Ask for battery voltage
-            _ = LogitechCustomDevice.WriteAsync(OutData).ConfigureAwait(false);
+            return OutData;
         }
-
-
 
         public void Dispose()
         {
             run = false;
             thread.Interrupt();
-            thread2.Interrupt();
             LogitechCustomDevice.Close();
             LogitechCustomDevice.Dispose();
         }

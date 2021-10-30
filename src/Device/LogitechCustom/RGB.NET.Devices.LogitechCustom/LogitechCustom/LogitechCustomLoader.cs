@@ -5,71 +5,83 @@ using System.Threading.Tasks;
 using Device.Net;
 using Hid.Net.Windows;
 using RGB.NET.Core;
-// ReSharper disable AsyncConverter.AsyncWait
+using Microsoft.Extensions.Logging;
 
 namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
 {
     public static class LogitechCustomLoader
     {
         public const int VENDOR_ID = 0x046D;
-        static List<DeviceDefinition> parts = new List<DeviceDefinition>();
+        public static readonly List<LogitechCustomController> controller = new List<LogitechCustomController>();
 
         public static async Task InitializeAsync()
         {
 
-            parts = new List<DeviceDefinition>();
-
-            parts.Add(new DeviceDefinition()
+            List<DeviceDefinition> devices = new()
             {
-                Pid = 0xC53A,
-                UsagePage = 0xFF00,
-                Page = 2,
-                Label = "PowerPlay",
-                Type = RGBDeviceType.Mousepad,
-                UsbBuf = new byte[] { 0x11, 0x07, 0x0B, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-                IsInitialized = false,
-                Reconnect = false,
-                Zones = 1
-            });
+                new DeviceDefinition()
+                {
+                    Pid = 0xC53A,
+                    UsagePage = 0xFF00,
+                    Page = 2,
+                    Label = "PowerPlay",
+                    Type = RGBDeviceType.Mousepad,
+                    UsbBuf = new byte[] { 0x11, 0x07, 0x0B, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                    IsInitialized = false,
+                    Reconnect = false,
+                    Zones = 1
+                },
 
-            parts.Add(new DeviceDefinition()
+                new DeviceDefinition()
+                {
+                    Pid = 0x0ab5,
+                    UsagePage = 0xFF43,
+                    Page = 514,
+                    Label = "G733",
+                    Type = RGBDeviceType.Headset,
+                    UsbBuf = new byte[] { 0x11, 0xFF, 0x04, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                    IsInitialized = false,
+                    Reconnect = true,
+                    Zones = 2
+                }
+            };
+
+
+            foreach (var item in devices)
             {
-                Pid = 0x0ab5,
-                UsagePage = 0xFF43,
-                Page = 514,
-                Label = "G733",
-                Type = RGBDeviceType.Headset,
-                UsbBuf = new byte[] { 0x11, 0xFF, 0x04, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-                IsInitialized = false,
-                Reconnect = true,
-                Zones = 2
-            });
+                var test = await GetDeviceAsync(vendorId: VENDOR_ID, item);
+                if (test != null)
+                {
 
-
-            foreach (var item in parts)
-            {
-                await GetDeviceAsync(vendorId: VENDOR_ID, item);
+                    controller.Add(test);
+                }
             }
         }
 
         public static void FreeDevices()
         {
 
-            foreach (var item in parts)
+            foreach (var item in controller)
             {
-                item.Controller?.Dispose();
-                item.IsInitialized = false;
+                item.Dispose();
+                item.deviceDefinition.IsInitialized = false;
             }
         }
 
-        public static List<DeviceDefinition> GetDevices()
+        public static List<LogitechCustomController> GetDevices()
         {
-            return parts;
+            return controller;
         }
 
-        private static async Task GetDeviceAsync(int vendorId, DeviceDefinition device)
+        private static async Task<LogitechCustomController?> GetDeviceAsync(uint vendorId, DeviceDefinition device)
         {
-            var hidFactory = new FilterDeviceDefinition(vendorId: VENDOR_ID, productId: device.Pid, usagePage: device.UsagePage, label: device.Label).CreateWindowsHidDeviceFactory();
+            var loggerFactory = LoggerFactory.Create((builder) =>
+            {
+                _ = builder.AddDebug().SetMinimumLevel(LogLevel.Trace);
+            });
+
+
+            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: device.Pid, usagePage: device.UsagePage, label: device.Label).CreateWindowsHidDeviceFactory(loggerFactory);
 
             var LogitechCustomDeviceDefinition = (await hidFactory.GetConnectedDeviceDefinitionsAsync().ConfigureAwait(false)).FirstOrDefault(d => d.Usage == device.Page);
             IDevice? LogitechCustomDevice = null;
@@ -83,11 +95,13 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 if (LogitechCustomDevice != null)
                 {
                     LogitechCustomDevice.InitializeAsync().Wait();
-                    device.Controller = new LogitechCustomController(device, LogitechCustomDevice);
-                    device.IsInitialized = true;
+                    var controller = new LogitechCustomController(device, LogitechCustomDevice);
+                    controller.deviceDefinition.IsInitialized = true;
+                    return controller;
                 }
             }
 
+            return null;
         }
     }
 }

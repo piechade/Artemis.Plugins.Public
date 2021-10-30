@@ -27,10 +27,10 @@ namespace RGB.NET.Devices.LogitechCustom
 
             foreach (var item in LogitechCustomLoader.GetDevices())
             {
-                if (item.IsInitialized)
+                if (item.deviceDefinition.IsInitialized)
                 {
-                    LogitechCustomUpdateQueue matUpdateQueue = new LogitechCustomUpdateQueue(GetUpdateTrigger(0), item.Controller);
-                    yield return new LogitechCustomRgbDevice(new LogitechCustomRgbDeviceInfo(item.Label, item.Type), matUpdateQueue, 1);
+                    LogitechCustomUpdateQueue logitechUpdateQueue = new(GetUpdateTrigger(0), item);
+                    yield return new LogitechCustomRgbDevice(new LogitechCustomRgbDeviceInfo(item.deviceDefinition.Label, item.deviceDefinition.Type), logitechUpdateQueue, 1);
                 }
             }
 

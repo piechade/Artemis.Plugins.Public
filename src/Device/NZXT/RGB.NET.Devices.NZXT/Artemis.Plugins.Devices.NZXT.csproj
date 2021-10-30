@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <ShouldIncludeNativeSkiaSharp>false</ShouldIncludeNativeSkiaSharp>
-    <AssemblyName>Artemis.Plugins.Devices.LogitechCustom</AssemblyName>
-    <RootNamespace>Artemis.Plugins.Devices.LogitechCustom</RootNamespace>
+    <AssemblyName>Artemis.Plugins.Devices.NZXT</AssemblyName>
+    <RootNamespace>Artemis.Plugins.Devices.NZXT</RootNamespace>
     <UseWPF>true</UseWPF>
     <Platforms>x64</Platforms>
     <GenerateDependencyFile>False</GenerateDependencyFile>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RGB.NET.Devices.LogitechCustom\RGB.NET.Devices.LogitechCustom.csproj" />
+    <ProjectReference Include="..\RGB.NET.Devices.NZXT\RGB.NET.Devices.NZXT.csproj" />
   </ItemGroup>
 
   <ItemGroup>
