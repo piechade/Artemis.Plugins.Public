@@ -12,5 +12,10 @@ namespace RGB.NET.Devices.NZXT.NZXT
         public byte Value { get; set; }
         public string Label { get; set; }
         public int LedCount { get; set; }
+
+        public NZXTDeviceType()
+        {
+            Label = "NZXT Device";
+        }
     }
 }

@@ -13,16 +13,16 @@ namespace RGB.NET.Devices.NZXT.NZXT
 {
     public static class NZXTLoader
     {
-        private static ILoggerFactory? loggerFactory;
-        public static List<NZXTController> NZXTController = new();
+        //private static ILoggerFactory? loggerFactory;
+        private static List<NZXTController> NZXTController = new();
 
         public static async Task InitializeAsync()
         {
 
-            loggerFactory = LoggerFactory.Create((builder) =>
-            {
-                _ = builder.AddDebug().SetMinimumLevel(LogLevel.Trace);
-            });
+            //loggerFactory = LoggerFactory.Create((builder) =>
+            //{
+            //    _ = builder.AddDebug().SetMinimumLevel(LogLevel.Trace);
+            //});
 
 
             List<DeviceTypeDefinition> devicetypes = new()
@@ -161,7 +161,7 @@ namespace RGB.NET.Devices.NZXT.NZXT
             {
                 uint start = 0x0F + (6 * chan);
 
-                NZXTDevice NZXTDevice = new NZXTDevice
+                NZXTDevice NZXTDevice = new()
                 {
                     Device = device,
                     Channel = (byte)(chan + 1),
@@ -173,26 +173,31 @@ namespace RGB.NET.Devices.NZXT.NZXT
                 {
                     Debug.Write("{0:D2}, ", result.Data[start + dev].ToString());
 
-                    var test = deviceDefinition.Types.Find(x => x.Value == result.Data[start + dev]);
-
-                    if (test != null)
+                    if (deviceDefinition.Types != null)
                     {
-                        NZXTDevice.Types.Add(new NZXTDeviceType
-                        {
-                            Label = test.Label,
-                            LedCount = test.LeedCount
-                        });
+                        var test = deviceDefinition.Types.Find(x => x.Value == result.Data[start + dev]);
 
-                        if (NZXTDevice.Type == RGBDeviceType.Unknown)
+
+                        if (test != null)
                         {
-                            NZXTDevice.Type = test.Type;
-                        }
-                        else if (NZXTDevice.Type != test.Type)
-                        {
-                            NZXTDevice.Type = RGBDeviceType.All;
+                            NZXTDevice.Types.Add(new NZXTDeviceType
+                            {
+                                Label = test.Label,
+                                LedCount = test.LeedCount
+                            });
+
+                            if (NZXTDevice.Type == RGBDeviceType.Unknown)
+                            {
+                                NZXTDevice.Type = test.Type;
+                            }
+                            else if (NZXTDevice.Type != test.Type)
+                            {
+                                NZXTDevice.Type = RGBDeviceType.All;
+                            }
+
+                            NZXTDevice.Label = test.Label;
                         }
 
-                        NZXTDevice.Label = test.Label;
                     }
 
                 }
@@ -202,19 +207,6 @@ namespace RGB.NET.Devices.NZXT.NZXT
             }
 
             return NZXTController;
-        }
-
-        private static NZXTDevice NewMethod(DeviceDefinition device, IDevice nZXTDevice, byte channel)
-        {
-            NZXTDevice part = new()
-            {
-                Device = nZXTDevice,
-                Label = device.Label,
-                Channel = channel,
-                IsInitialized = true
-            };
-            part.Types = new List<NZXTDeviceType>();
-            return part;
         }
     }
 }
