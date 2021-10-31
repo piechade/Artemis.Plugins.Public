@@ -10,7 +10,7 @@ namespace RGB.NET.Devices.NZXT.Device
 
         public RGBDeviceType DeviceType { get; }
 
-        public string Manufacturer => "Logitech";
+        public string Manufacturer => "NZXT";
 
         public string Model { get; }
 

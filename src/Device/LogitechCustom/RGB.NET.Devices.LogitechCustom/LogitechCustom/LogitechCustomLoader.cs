@@ -12,7 +12,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
     public static class LogitechCustomLoader
     {
         public const int VENDOR_ID = 0x046D;
-        public static readonly List<LogitechCustomController> controller = new List<LogitechCustomController>();
+        public static readonly List<LogitechCustomController> controller = new();
 
         public static async Task InitializeAsync()
         {

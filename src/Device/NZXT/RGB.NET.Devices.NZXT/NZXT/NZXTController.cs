@@ -15,45 +15,69 @@ namespace RGB.NET.Devices.NZXT.NZXT
     public class NZXTController : IDisposable
     {
         private readonly byte[] UsbBuf;
-        private readonly DeviceDefinition DeviceDefinition;
-        private readonly IDevice NZXTDevice;
+        public readonly NZXTDevice NZXTDevice;
 
-        public NZXTController(DeviceDefinition device, IDevice NZXTDevice)
+        public NZXTController(NZXTDevice device)
         {
-            GetAttachedDevices();
-
-
+            NZXTDevice = device;
+            UsbBuf = new byte[64];
         }
 
-        public void SetColor(Color color, byte zone)
+        public void SetColor(Color color, int zone)
         {
             if (UsbBuf != null)
             {
-                UsbBuf[0x04] = zone;
-                UsbBuf[0x06] = color.R;
-                UsbBuf[0x07] = color.G;
-                UsbBuf[0x08] = color.B;
+                UsbBuf[0x00] = 0x22;
+                UsbBuf[0x01] = 0x10;
+                UsbBuf[0x02] = NZXTDevice.Channel;
+                UsbBuf[0x03] = 0x00;
+
+                var test1 = 0x04;
+                if (zone > 0)
+                {
+                    test1 += 3 * zone;
+                }
+
+                UsbBuf[test1] = color.G;
+                UsbBuf[test1+1] = color.R;
+                UsbBuf[test1+2] = color.B;
+
+                if (NZXTDevice.Device != null)
+                {
+                   NZXTDevice.Device.WriteAsync(UsbBuf);
+                }
+
+                SendApply();
             }
         }
 
-
-        public void GetAttachedDevices()
+        public void SendApply()
         {
-            byte[] OutData = new byte[3];
+            byte[] UsbBuf = new byte[64];
 
-            OutData[0] = 0x20;
-            OutData[1] = 0x03;
-            OutData[2] = 0x00;
-
-
-            var result = NZXTDevice.WriteAndReadAsync(OutData).ConfigureAwait(true);
-            //Debug.WriteLine("Received hid frame: " + BitConverter.ToString(result.));
+            UsbBuf[0x00] = 0x22;
+            UsbBuf[0x01] = 0xA0;
+            UsbBuf[0x02] = NZXTDevice.Channel;
+            UsbBuf[0x04] = 0x01;
+            UsbBuf[0x07] = 0x28;
+            UsbBuf[0x0A] = 0x80;
+            UsbBuf[0x0C] = 0x32;
+            UsbBuf[0x0F] = 0x01;
+            if (NZXTDevice.Device != null)
+            {
+                NZXTDevice.Device.WriteAsync(UsbBuf);
+            }
         }
 
         public void Dispose()
         {
-            NZXTDevice.Close();
-            NZXTDevice.Dispose();
+            if (NZXTDevice.Device != null)
+            {
+                NZXTDevice.Device.Close();
+                NZXTDevice.Device.Dispose();
+            }
+
+            GC.SuppressFinalize(this);
         }
     }
 }

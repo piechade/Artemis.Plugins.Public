@@ -51,16 +51,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Layouts\Logitech\Mousepad\PowerPlay.png">
+    <None Update="Layouts\NZXT\Fan\Aer 2 RGB Fan (140mm).xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Mousepad\PowerPlay.xml">
+    <None Update="Layouts\NZXT\Fan\Aer 2 RGB Fan (140mm).png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Headset\G733.png">
+    <None Update="Layouts\NZXT\LedStripe\Hue 2 LED Strip.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Layouts\Logitech\Headset\G733.xml">
+    <None Update="Layouts\NZXT\LedStripe\Hue 2 LED Strip.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Logitech.svg">

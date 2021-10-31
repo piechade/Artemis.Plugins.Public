@@ -53,7 +53,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
 
             readDeviceObservable = Observable
                 .Timer(TimeSpan.Zero, TimeSpan.FromSeconds(.1))
-                .SelectMany(_ => Observable.FromAsync(() => NewMethod()))
+                .SelectMany(_ => Observable.FromAsync(() => LogitechCustomDevice.ReadAsync(new CancellationTokenSource(LogitechWirelessProtocolTimeout).Token)))
                 .Distinct();
 
             _ = readDeviceObservable.Subscribe(sr =>
@@ -76,18 +76,6 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 }
             };
 
-        }
-
-        private Task<TransferResult> NewMethod()
-        {
-            if (run)
-            {
-                return LogitechCustomDevice.ReadAsync();
-            }
-
-#pragma warning disable CS8603 // Mögliche Nullverweisrückgabe.
-            return null;
-#pragma warning restore CS8603 // Mögliche Nullverweisrückgabe.
         }
 
         private void SendLastValue(int delay)
@@ -155,7 +143,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
         {
             while (run)
             {
-                if (_jobs.TryDequeue(out var result))
+                if (queue.TryDequeue(out var result))
                 {
                     _ = LogitechCustomDevice.WriteAsync(result).ConfigureAwait(false);
                     System.Threading.Thread.Sleep(5);
@@ -163,23 +151,23 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             }
         }
 
-        private static byte[] Gen_battery_level_update_message()
-        {
-            byte[] OutData = new byte[20];
+        //private static byte[] Gen_battery_level_update_message()
+        //{
+        //    byte[] OutData = new byte[20];
 
-            for (int index = 0; index < (20); ++index)
-            {
-                OutData[index] = 0x00;
-            }
+        //    for (int index = 0; index < (20); ++index)
+        //    {
+        //        OutData[index] = 0x00;
+        //    }
 
-            OutData[0] = 0x11;
-            OutData[1] = 0xff;
+        //    OutData[0] = 0x11;
+        //    OutData[1] = 0xff;
 
-            OutData[2] = 0x08;
-            OutData[3] = 0x0f;
+        //    OutData[2] = 0x08;
+        //    OutData[3] = 0x0f;
 
-            return OutData;
-        }
+        //    return OutData;
+        //}
 
         public void Dispose()
         {
@@ -187,6 +175,8 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             thread.Interrupt();
             LogitechCustomDevice.Close();
             LogitechCustomDevice.Dispose();
+
+            GC.SuppressFinalize(this);
         }
     }
 }

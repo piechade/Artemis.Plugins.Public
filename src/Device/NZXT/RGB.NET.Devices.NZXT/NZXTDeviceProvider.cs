@@ -27,19 +27,20 @@ namespace RGB.NET.Devices.NZXT
 
             foreach (var item in NZXTLoader.GetDevices())
             {
-                if (item.IsInitialized)
+                if (item.NZXTDevice.IsInitialized)
                 {
-                    NZXTUpdateQueue matUpdateQueue = new NZXTUpdateQueue(GetUpdateTrigger(0), item.Controller);
-                    yield return new NZXTRgbDevice(new NZXTRgbDeviceInfo(item.Label, item.Type), matUpdateQueue, 1);
+                    NZXTUpdateQueue matUpdateQueue = new(GetUpdateTrigger(0), item);
+                    yield return new NZXTRgbDevice(new NZXTRgbDeviceInfo(item.NZXTDevice.Label, item.NZXTDevice.Type), matUpdateQueue, item.NZXTDevice.GetLedCount());
                 }
             }
-
         }
 
         public override void Dispose()
         {
             base.Dispose();
             NZXTLoader.FreeDevices();
+
+            GC.SuppressFinalize(this);
         }
         protected override void InitializeSDK() { }
     }

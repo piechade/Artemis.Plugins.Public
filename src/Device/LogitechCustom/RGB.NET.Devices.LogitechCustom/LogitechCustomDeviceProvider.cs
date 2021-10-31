@@ -40,6 +40,8 @@ namespace RGB.NET.Devices.LogitechCustom
         {
             base.Dispose();
             LogitechCustomLoader.FreeDevices();
+
+            GC.SuppressFinalize(this);
         }
         protected override void InitializeSDK() { }
     }

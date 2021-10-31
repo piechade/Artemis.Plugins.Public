@@ -58,6 +58,8 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Hid.Net" Version="4.2.1" />
+	  <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
 	  <PackageReference Include="Usb.Net" Version="4.2.1" />
 	</ItemGroup>
 	<ItemGroup>

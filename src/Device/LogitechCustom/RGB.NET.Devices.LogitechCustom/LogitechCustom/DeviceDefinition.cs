@@ -23,7 +23,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
 
         private bool _connect;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        new public event PropertyChangedEventHandler? PropertyChanged;
 
         public bool Connect
         {
@@ -51,11 +51,10 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
 
     public class NotifyObject : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged(string propertyName, object oldvalue, object newvalue)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedExtendedEventArgs(propertyName, oldvalue, newvalue));
+            PropertyChanged?.Invoke(this, new PropertyChangedExtendedEventArgs(propertyName, oldvalue, newvalue));
         }
     }
 

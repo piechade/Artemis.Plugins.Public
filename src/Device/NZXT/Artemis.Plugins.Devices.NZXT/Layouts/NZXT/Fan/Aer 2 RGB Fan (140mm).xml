@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Device xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>NZXT Aer RGB 2</Name>
+  <Description>NZXT Aer RGB 2 as Smart Device v2</Description>
+  <Author>Dennis Piecha</Author>
+  <Type>LedStripe</Type>
+  <Vendor>NZXT</Vendor>
+  <Model>Aer RGB 2</Model>
+  <Width>121</Width>
+  <Height>240.59</Height>
+  <Leds>
+    <Led Id="LedStripe1">
+      <Shape>Circle</Shape>
+      <X>100</X>
+      <Y>18</Y>
+    </Led>
+    <Led Id="LedStripe2">
+      <Shape>Circle</Shape>
+      <X>83</X>
+      <Y>0</Y>
+    </Led>
+    <Led Id="LedStripe3">
+      <Shape>Circle</Shape>
+      <X>20</X>
+    </Led>
+    <Led Id="LedStripe4">
+      <Shape>Circle</Shape>
+      <X>5</X>
+      <Y>18</Y>
+    </Led>
+    <Led Id="LedStripe5">
+      <Shape>Circle</Shape>
+      <X>5</X>
+      <Y>83</Y>
+    </Led>
+    <Led Id="LedStripe6">
+      <Shape>Circle</Shape>
+      <X>20</X>
+      <Y>100</Y>
+    </Led>
+    <Led Id="LedStripe7">
+      <Shape>Circle</Shape>
+      <X>83</X>
+      <Y>100</Y>
+    </Led>
+    <Led Id="LedStripe8">
+      <Shape>Circle</Shape>
+      <X>100</X>
+      <Y>83</Y>
+    </Led>
+    <Led Id="LedStripe9">
+      <Shape>Circle</Shape>
+      <X>100</X>
+      <Y>138</Y>
+    </Led>
+    <Led Id="LedStripe10">
+      <Shape>Circle</Shape>
+      <X>83</X>
+      <Y>120</Y>
+    </Led>
+    <Led Id="LedStripe11">
+      <Shape>Circle</Shape>
+      <X>20</X>
+      <Y>120</Y>
+    </Led>
+    <Led Id="LedStripe12">
+      <Shape>Circle</Shape>
+      <X>5</X>
+      <Y>138</Y>
+    </Led>
+    <Led Id="LedStripe13">
+      <Shape>Circle</Shape>
+      <X>5</X>
+      <Y>200</Y>
+    </Led>
+    <Led Id="LedStripe14">
+      <Shape>Circle</Shape>
+      <X>20</X>
+      <Y>218</Y>
+    </Led>
+    <Led Id="LedStripe15">
+      <Shape>Circle</Shape>
+      <X>83</X>
+      <Y>218</Y>
+    </Led>
+    <Led Id="LedStripe16">
+      <Shape>Circle</Shape>
+      <X>97</X>
+      <Y>200</Y>
+    </Led>
+  </Leds>
+  <CustomData>
+    <DeviceImage>Aer 2 RGB Fan (140mm).png</DeviceImage>
+  </CustomData>
+</Device>
