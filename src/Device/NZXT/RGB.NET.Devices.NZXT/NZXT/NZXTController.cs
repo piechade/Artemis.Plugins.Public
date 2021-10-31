@@ -15,12 +15,23 @@ namespace RGB.NET.Devices.NZXT.NZXT
     public class NZXTController : IDisposable
     {
         private readonly byte[] UsbBuf;
+        private byte[] sendValue;
+        private readonly Thread thread;
+
         public readonly NZXTDevice NZXTDevice;
 
         public NZXTController(NZXTDevice device)
         {
             NZXTDevice = device;
             UsbBuf = new byte[64];
+
+            sendValue = new byte[64];
+
+            thread = new Thread(new ThreadStart(OnStart))
+            {
+                IsBackground = true
+            };
+            thread.Start();
         }
 
         public void SetColor(Color color, int zone)
@@ -39,15 +50,31 @@ namespace RGB.NET.Devices.NZXT.NZXT
                 }
 
                 UsbBuf[test1] = color.G;
-                UsbBuf[test1+1] = color.R;
-                UsbBuf[test1+2] = color.B;
+                UsbBuf[test1 + 1] = color.R;
+                UsbBuf[test1 + 2] = color.B;
 
+                sendValue = (byte[])UsbBuf.Clone();
+
+                //if (NZXTDevice.Device != null)
+                //{
+                //   NZXTDevice.Device.WriteAsync(UsbBuf);
+                //}
+
+                //SendApply();
+            }
+        }
+
+        private void OnStart()
+        {
+            while (true)
+            {
                 if (NZXTDevice.Device != null)
                 {
-                   NZXTDevice.Device.WriteAsync(UsbBuf);
+                    NZXTDevice.Device.WriteAsync(sendValue).ConfigureAwait(false);
                 }
 
                 SendApply();
+                System.Threading.Thread.Sleep(5);
             }
         }
 
@@ -65,7 +92,7 @@ namespace RGB.NET.Devices.NZXT.NZXT
             UsbBuf[0x0F] = 0x01;
             if (NZXTDevice.Device != null)
             {
-                NZXTDevice.Device.WriteAsync(UsbBuf);
+                NZXTDevice.Device.WriteAsync(UsbBuf).ConfigureAwait(false);
             }
         }
 

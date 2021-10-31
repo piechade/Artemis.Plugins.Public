@@ -81,7 +81,7 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
             });
 
 
-            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: device.Pid, usagePage: device.UsagePage, label: device.Label).CreateWindowsHidDeviceFactory(loggerFactory);
+            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: device.Pid, usagePage: device.UsagePage, label: device.Label).CreateWindowsHidDeviceFactory();
 
             var LogitechCustomDeviceDefinition = (await hidFactory.GetConnectedDeviceDefinitionsAsync().ConfigureAwait(false)).FirstOrDefault(d => d.Usage == device.Page);
             IDevice? LogitechCustomDevice = null;

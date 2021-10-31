@@ -133,7 +133,6 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 lastvalue[zone] = (byte[])UsbBuf.Clone();
             }
         }
-
         private void OnStart()
         {
             DoWork(_jobs);
@@ -146,10 +145,11 @@ namespace RGB.NET.Devices.LogitechCustom.LogitechCustom
                 if (queue.TryDequeue(out var result))
                 {
                     _ = LogitechCustomDevice.WriteAsync(result).ConfigureAwait(false);
-                    System.Threading.Thread.Sleep(5);
+                    System.Threading.Thread.Sleep(8);
                 }
             }
         }
+
 
         //private static byte[] Gen_battery_level_update_message()
         //{

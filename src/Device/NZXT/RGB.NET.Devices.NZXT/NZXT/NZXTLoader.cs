@@ -123,7 +123,7 @@ namespace RGB.NET.Devices.NZXT.NZXT
 
         private static async Task<IDevice> GetDeviceAsync(uint vendorId, uint productId, string label, int usage)
         {
-            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: productId, label: label).CreateWindowsHidDeviceFactory(loggerFactory);
+            var hidFactory = new FilterDeviceDefinition(vendorId: vendorId, productId: productId, label: label).CreateWindowsHidDeviceFactory();
             var NZXTDeviceDefinition = (await hidFactory.GetConnectedDeviceDefinitionsAsync().ConfigureAwait(false)).FirstOrDefault(d => d.Usage == usage);
             var NZXTDevice = await hidFactory.GetDeviceAsync(NZXTDeviceDefinition).ConfigureAwait(false);
             NZXTDevice.InitializeAsync().Wait();
