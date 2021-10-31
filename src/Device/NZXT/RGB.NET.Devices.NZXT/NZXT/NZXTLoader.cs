@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Device.Net;
 using Hid.Net.Windows;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using RGB.NET.Core;
 // ReSharper disable AsyncConverter.AsyncWait
 
@@ -89,6 +90,69 @@ namespace RGB.NET.Devices.NZXT.NZXT
                 NZXTController = await GetAttachedDevicesAsync(deviceDefinition, device2);
             }
 
+            OpenNzxtCam();
+
+        }
+
+        private static void OpenNzxtCam()
+        {
+
+            RegistryKey? regKey = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
+            if (regKey != null)
+            {
+                string location = FindByDisplayName(regKey, "NZXT CAM");
+                Debug.WriteLine("CAM Loaction: {0}", location);
+                Process.Start(location, "--startup");
+            }
+        }
+
+        private static string FindByDisplayName(RegistryKey parentKey, string name)
+        {
+            string[] nameList = parentKey.GetSubKeyNames();
+
+            foreach (var item in nameList)
+            {
+                try
+                {
+
+                    RegistryKey? regKey = parentKey.OpenSubKey(item);
+                    if (regKey != null)
+                    {
+                        var displayName = regKey.GetValue("DisplayName");
+                        if (displayName != null)
+                        {
+                            var displayNameS = displayName.ToString();
+                            if (displayNameS != null)
+                            {
+                                if (displayNameS.ToString().Contains(name) && !displayNameS.ToString().Contains("Beta"))
+                                {
+                                    var test1 = regKey.GetValue("DisplayIcon");
+                                    if (test1 != null)
+                                    {
+
+                                        var loc = test1.ToString();
+                                        if (loc != null)
+                                        {
+                                            string input = loc.ToString();
+                                            int index = input.IndexOf(",");
+                                            if (index >= 0)
+                                                input = input.Substring(0, index);
+                                            return input;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Exception: {0}", e);
+                }
+
+            }
+            return "";
         }
 
         private static async Task SendFirmwareRequest(IDevice device)

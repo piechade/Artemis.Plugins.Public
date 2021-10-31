@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using RGB.NET.Core;
 using RGB.NET.Devices.NZXT.Device;
 using RGB.NET.Devices.NZXT.NZXT;
@@ -42,6 +43,14 @@ namespace RGB.NET.Devices.NZXT
 
             GC.SuppressFinalize(this);
         }
-        protected override void InitializeSDK() { }
+        protected override void InitializeSDK()
+        {
+            Process[] processes = Process.GetProcessesByName("NZXT CAM");
+            if (processes.Length > 0)
+            {
+                Process nzxtCam = processes[0];
+                nzxtCam.Kill();
+            }
+        }
     }
 }
