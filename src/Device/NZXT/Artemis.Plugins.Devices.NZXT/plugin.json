@@ -1,7 +1,7 @@
 ﻿{
   "Guid": "9b68c4aa-8c2f-4cfb-90d3-2883ab439611",
   "Name": "NZXT Device Provider",
-  "Icon": "Logitech.svg",
+  "Icon": "NZXT.svg",
   "Author": "martinklaus",
   "Repository": "https://github.com/Cheerpipe/Artemis.Plugins.Public",
   "Description": "NZXT",

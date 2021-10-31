@@ -63,7 +63,7 @@
     <None Update="Layouts\NZXT\LedStrip\RGB LED Strip.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Logitech.svg">
+    <None Update="NZXT.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
