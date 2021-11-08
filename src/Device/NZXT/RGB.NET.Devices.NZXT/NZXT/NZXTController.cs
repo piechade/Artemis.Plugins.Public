@@ -20,6 +20,8 @@ namespace RGB.NET.Devices.NZXT.NZXT
 
         public readonly NZXTDevice NZXTDevice;
 
+        public byte[] oldValue { get; private set; }
+
         public NZXTController(NZXTDevice device)
         {
             NZXTDevice = device;
@@ -70,11 +72,14 @@ namespace RGB.NET.Devices.NZXT.NZXT
             {
                 if (NZXTDevice.Device != null)
                 {
-                    NZXTDevice.Device.WriteAsync(sendValue).ConfigureAwait(false);
+                    if (oldValue != sendValue)
+                    {
+                        oldValue = sendValue;
+                        NZXTDevice.Device.WriteAsync(sendValue).ConfigureAwait(false);
+                        SendApply();
+                    }
                 }
-
-                SendApply();
-                System.Threading.Thread.Sleep(5);
+                System.Threading.Thread.Sleep(8);
             }
         }
 
